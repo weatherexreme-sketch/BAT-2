@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" id="meta-theme-color" content="#f2f2f7" />
+  <title>Benton Area Transit</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      background-color: #f2f2f7;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      overflow: hidden;
+      color: #1c1c1e;
+    }
+
+    /* App Container */
+    .app-shell {
+      position: relative;
+      height: 100dvh;
+      width: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      background-color: #f2f2f7;
+      overflow: hidden;
+    }
+
+    /* ==================== SCREEN 1: MY PASSES ==================== */
+    .screen-home {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background-color: #f2f2f7;
+      padding: max(env(safe-area-inset-top), 14px) 18px max(env(safe-area-inset-bottom), 22px) 18px;
+      z-index: 1;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 14px;
+    }
+
+    .circle-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background-color: #ffffff;
+      border: none;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.07);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #1c1c1e;
+      position: relative;
+      transition: transform 0.12s ease, opacity 0.12s ease;
+    }
+
+    .circle-btn:active {
+      transform: scale(0.94);
+      opacity: 0.85;
+    }
+
+    .circle-btn svg {
+      width: 20px;
+      height: 20px;
+      stroke: currentColor;
+      stroke-width: 1.9;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .cart-badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 9px;
+      background-color: #166d52;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cart-badge.visible {
+      display: flex;
+    }
+
+    .page-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #000000;
+      letter-spacing: -0.6px;
+      line-height: 1.15;
+      margin-bottom: 16px;
+    }
+
+    .home-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 16px;
+    }
+
+    /* Empty State Illustration */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 26px;
+    }
+
+    .empty-state svg {
+      width: 100%;
+      max-width: 330px;
+      height: auto;
+      display: block;
+    }
+
+    /* Purchased Passes List */
+    .passes-list {
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .passes-list.has-passes {
+      display: flex;
+    }
+
+    .pass-card {
+      background-color: #ffffff;
+      border-radius: 18px;
+      padding: 16px 18px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: transform 0.12s ease;
+    }
+
+    .pass-card:active {
+      transform: scale(0.985);
+    }
+
+    .pass-card-logo {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background-color: #f7f8fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      flex-shrink: 0;
+    }
+
+    .pass-card-logo svg {
+      width: 100%;
+      height: auto;
+    }
+
+    .pass-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .pass-card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1c1c1e;
+      line-height: 1.25;
+      letter-spacing: -0.2px;
+    }
+
+    .pass-card-sub {
+      font-size: 13px;
+      color: #6e6e73;
+      margin-top: 3px;
+    }
+
+    .pass-card-pill {
+      display: inline-block;
+      margin-top: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #166d52;
+      background-color: #e6f4ef;
+      padding: 3px 9px;
+      border-radius: 999px;
+    }
+
+    .pass-card-chevron {
+      color: #c7c7cc;
+      flex-shrink: 0;
+    }
+
+    /* Primary Green Button */
+    .primary-green-btn {
+      width: 100%;
+      height: 50px;
+      border: none;
+      border-radius: 12px;
+      background-color: #166d52;
+      color: #ffffff;
+      font-size: 16.5px;
+      font-weight: 600;
+      letter-spacing: -0.2px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.12s ease, transform 0.12s ease;
+      flex-shrink: 0;
+    }
+
+    .primary-green-btn:active {
+      opacity: 0.88;
+      transform: scale(0.99);
+    }
+
+    /* ==================== SCREEN 2 & 3: BUY PASSES MODAL SHEET ==================== */
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.28);
+      z-index: 10;
+      display: none;
+      flex-direction: column;
+      padding-top: max(env(safe-area-inset-top), 14px);
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .buy-sheet {
+      flex: 1;
+      background-color: #f2f2f7;
+      border-top-left-radius: 22px;
+      border-top-right-radius: 22px;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 18px max(env(safe-area-inset-bottom), 20px) 18px;
+      overflow: hidden;
+      animation: slideUp 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+
+    .buy-view {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .buy-view.hidden {
+      display: none;
+    }
+
+    /* Agency Card */
+    .agency-card {
+      background-color: #ffffff;
+      border-radius: 20px;
+      padding: 18px 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    }
+
+    .agency-logo-wrap {
+      width: 58px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .agency-logo-wrap svg {
+      width: 100%;
+      height: auto;
+    }
+
+    .agency-info {
+      flex: 1;
+    }
+
+    .agency-name {
+      font-size: 18.5px;
+      font-weight: 400;
+      color: #1c1c1e;
+      letter-spacing: -0.2px;
+    }
+
+    .agency-location {
+      font-size: 15px;
+      color: #8e8e93;
+      margin-top: 3px;
+    }
+
+    .chevron-right {
+      color: #b5b5ba;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    /* Origin / Destination Selector Rows */
+    .selector-pill {
+      background-color: #ffffff;
+      border-radius: 22px;
+      padding: 15px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+      border: none;
+      width: 100%;
+      text-align: left;
+      transition: background-color 0.12s ease;
+    }
+
+    .selector-pill:active {
+      background-color: #e9e9ee;
+    }
+
+    .selector-label {
+      font-size: 16.5px;
+      font-weight: 400;
+      color: #1c1c1e;
+    }
+
+    .selector-value-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #8e8e93;
+      font-size: 16px;
+    }
+
+    /* Pass Purchase Card */
+    .purchase-card {
+      background-color: #ffffff;
+      border-radius: 20px;
+      padding: 20px 18px 18px 18px;
+      margin-top: 6px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    }
+
+    .purchase-title {
+      font-size: 19.5px;
+      font-weight: 400;
+      color: #1c1c1e;
+      line-height: 1.28;
+      letter-spacing: -0.2px;
+    }
+
+    .purchase-desc {
+      font-size: 13.5px;
+      color: #8e8e93;
+      line-height: 1.4;
+      margin-top: 8px;
+    }
+
+    .purchase-price {
+      font-size: 18px;
+      font-weight: 400;
+      color: #1c1c1e;
+      margin-top: 12px;
+      margin-bottom: 16px;
+    }
+
+    .add-to-cart-btn {
+      width: 100%;
+      background: none;
+      border: none;
+      color: #166d52;
+      font-size: 16px;
+      font-weight: 600;
+      padding: 14px 0 4px 0;
+      cursor: pointer;
+    }
+
+    .add-to-cart-btn:active {
+      opacity: 0.65;
+    }
+
+    /* ==================== SCREEN 3: CITY PICKER VIEW ==================== */
+    .picker-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .picker-nav-title {
+      font-size: 16.5px;
+      font-weight: 600;
+      color: #1c1c1e;
+    }
+
+    .picker-subheader {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 4px 12px 4px;
+    }
+
+    .picker-subheader h2 {
+      font-size: 22px;
+      font-weight: 400;
+      color: #1c1c1e;
+      letter-spacing: -0.3px;
+    }
+
+    .picker-subheader svg {
+      width: 18px;
+      height: 18px;
+      stroke: #28659b;
+      stroke-width: 2.2;
+      fill: none;
+    }
+
+    .city-list-card {
+      background-color: #ffffff;
+      border-radius: 20px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+    }
+
+    .city-row {
+      width: 100%;
+      background: none;
+      border: none;
+      border-bottom: 1px solid #ececef;
+      padding: 16px 20px;
+      text-align: left;
+      cursor: pointer;
+      display: block;
+      transition: background-color 0.1s ease;
+    }
+
+    .city-row:last-child {
+      border-bottom: none;
+    }
+
+    .city-row:active {
+      background-color: #f2f2f7;
+    }
+
+    .city-name {
+      font-size: 17px;
+      font-weight: 400;
+      color: #1c1c1e;
+      line-height: 1.25;
+    }
+
+    .city-sub {
+      font-size: 13.5px;
+      color: #8e8e93;
+      margin-top: 3px;
+    }
+
+    /* ==================== SCREEN 4: ORIGINAL TICKET VIEW (UNCHANGED DESIGN) ==================== */
+    .ticket-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      background-color: #000000;
+      display: none;
+      flex-direction: column;
+    }
+
+    .ticket-overlay.open {
+      display: flex;
+    }
+
+    /* Black status-bar backdrop + iOS modal sheet */
+    .viewport {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      width: 100%;
+      max-width: 430px;
+      margin: 0 auto;
+      background-color: #000000;
+      padding-top: max(env(safe-area-inset-top), 12px);
+    }
+
+    .ticket-sheet {
+      flex: 1;
+      background-color: #ffffff;
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 20px env(safe-area-inset-bottom, 24px) 20px;
+      position: relative;
+      overflow: hidden;
+      animation: slideUp 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    .header-text h1 {
+      font-size: 21px;
+      font-weight: 700;
+      color: #1c1c1e;
+      letter-spacing: -0.3px;
+      line-height: 1.2;
+    }
+
+    .header-text p {
+      font-size: 13.5px;
+      font-weight: 400;
+      color: #5a5a5e;
+      margin-top: 3px;
+      letter-spacing: -0.1px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      padding: 2px 2px 8px 8px;
+      cursor: pointer;
+      color: #3a3a3c;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .close-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+    }
+
+    /* Pulsing Validation Badge */
+    .badge-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 220px;
+      max-height: 290px;
+      position: relative;
+    }
+
+    .pulse-ring {
+      position: relative;
+      width: 182px;
+      height: 182px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Subtle gray outer ring visible when blue ring contracts */
+    .pulse-halo {
+      position: absolute;
+      width: 144px;
+      height: 144px;
+      border-radius: 50%;
+      border: 4px solid #d4d6d9;
+      pointer-events: none;
+    }
+
+    /* Animated blue circle */
+    .pulse-blue {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background-color: #28659b;
+      box-shadow: inset 0 0 0 2px rgba(20, 62, 102, 0.25);
+      animation: tokenPulse 3.6s ease-in-out infinite;
+      will-change: transform;
+    }
+
+    @keyframes tokenPulse {
+      0%   { transform: scale(0.74); }
+      35%  { transform: scale(0.92); }
+      55%  { transform: scale(1.0);  }
+      72%  { transform: scale(0.84); }
+      86%  { transform: scale(0.98); }
+      100% { transform: scale(0.74); }
+    }
+
+    /* Fixed white inner circle holding the logo */
+    .logo-circle {
+      position: relative;
+      z-index: 2;
+      width: 112px;
+      height: 112px;
+      border-radius: 50%;
+      background-color: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      padding: 12px;
+    }
+
+    .logo-circle img,
+    .logo-circle svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Live Clock */
+    .clock {
+      text-align: center;
+      font-size: 46px;
+      font-weight: 700;
+      color: #1c1c1e;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+      margin-bottom: 18px;
+    }
+
+    /* Route Banner */
+    .route-pill {
+      width: 100%;
+      background-color: #000000;
+      color: #ffffff;
+      border-radius: 18px;
+      padding: 12px 16px;
+      text-align: center;
+      font-size: 44px;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+
+    /* Ticket Details Card */
+    .details-card {
+      width: 100%;
+      background-color: #ffffff;
+      border-radius: 12px;
+      border: 1px solid #eeeeee;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      padding: 20px 18px;
+      text-align: left;
+    }
+
+    .ticket-title {
+      font-size: 21px;
+      font-weight: 400;
+      color: #222222;
+      line-height: 1.3;
+      letter-spacing: -0.2px;
+    }
+
+    .ticket-agency {
+      font-size: 13px;
+      font-weight: 400;
+      color: #636366;
+      margin-top: 6px;
+    }
+
+    .ticket-expiry {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1c1c1e;
+      margin-top: 24px;
+      letter-spacing: -0.1px;
+    }
+
+    /* Subtle toast notification */
+    .toast {
+      position: absolute;
+      bottom: 86px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background-color: rgba(28, 28, 30, 0.92);
+      color: #ffffff;
+      padding: 10px 18px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 50;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+
+    <!-- ==================== SCREEN 1: MY PASSES ==================== -->
+    <section class="screen-home" id="screen-home">
+      <div class="top-bar">
+        <button class="circle-btn" id="btn-refresh" aria-label="Refresh">
+          <svg viewBox="0 0 24 24">
+            <path d="M20 12a8 8 0 1 1-2.34-5.66"></path>
+            <polyline points="20 4 20 10 14 10"></polyline>
+          </svg>
+        </button>
+        <button class="circle-btn" id="btn-profile" aria-label="Account">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="8" r="3.6"></circle>
+            <path d="M5 19.5c0-3.2 3.1-5.5 7-5.5s7 2.3 7 5.5"></path>
+          </svg>
+        </button>
+      </div>
+
+      <h1 class="page-title">My Passes</h1>
+
+      <div class="home-content">
+        <!-- Empty State Ticket Illustration (matches Screenshot 1) -->
+        <div class="empty-state" id="empty-state">
+          <svg viewBox="0 0 360 280" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- Decorative accent lines -->
+            <line x1="58" y1="96" x2="96" y2="88" stroke="#9aa6b2" stroke-width="1.4" stroke-linecap="round"/>
+            <line x1="65" y1="104" x2="86" y2="100" stroke="#9aa6b2" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="252" y1="68" x2="310" y2="56" stroke="#9aa6b2" stroke-width="1.4" stroke-linecap="round"/>
+            <line x1="30" y1="194" x2="84" y2="194" stroke="#9aa6b2" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="76" y1="201" x2="94" y2="201" stroke="#b5bfc9" stroke-width="1.2" stroke-linecap="round"/>
+            <line x1="266" y1="194" x2="316" y2="194" stroke="#9aa6b2" stroke-width="1.3" stroke-linecap="round"/>
+            <line x1="296" y1="176" x2="322" y2="176" stroke="#9aa6b2" stroke-width="1.3" stroke-linecap="round"/>
+
+            <!-- Scattered dots, rings, and plus marks -->
+            <circle cx="195" cy="36" r="2.2" stroke="#9aa6b2" stroke-width="1.2"/>
+            <circle cx="132" cy="56" r="2.2" fill="#4f5d75"/>
+            <circle cx="178" cy="73" r="3" stroke="#4f5d75" stroke-width="1.4"/>
+            <circle cx="228" cy="84" r="2.2" stroke="#9aa6b2" stroke-width="1.2"/>
+            <circle cx="326" cy="96" r="3" stroke="#4f5d75" stroke-width="1.4"/>
+            <circle cx="342" cy="128" r="2" fill="#4f5d75"/>
+            <circle cx="30" cy="125" r="1.8" stroke="#4f5d75" stroke-width="1.2"/>
+            <circle cx="18" cy="168" r="2" fill="#4f5d75"/>
+            <circle cx="36" cy="184" r="2.2" fill="#166d52"/>
+            <circle cx="164" cy="208" r="2.4" stroke="#4f5d75" stroke-width="1.3"/>
+            <circle cx="152" cy="226" r="2" stroke="#4f5d75" stroke-width="1.3"/>
+            <circle cx="212" cy="242" r="2.2" fill="#4f5d75"/>
+            <circle cx="294" cy="218" r="2.2" fill="#4f5d75"/>
+            <circle cx="68" cy="264" r="3.4" fill="#b4bcc6"/>
+            <circle cx="268" cy="146" r="1.8" fill="#166d52"/>
+            <circle cx="122" cy="84" r="1.8" fill="#4f5d75"/>
+
+            <!-- Plus signs -->
+            <path d="M266 44v6M263 47h6" stroke="#166d52" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M204 38v4M202 40h4" stroke="#166d52" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M224 62v5M221.5 64.5h5" stroke="#4f5d75" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M294 82v4M292 84h4" stroke="#166d52" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M148 76v5M145.5 78.5h5" stroke="#4f5d75" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M96 78v4M94 80h4" stroke="#166d52" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M50 96v5M47.5 98.5h5" stroke="#166d52" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M44 146v5M41.5 148.5h5" stroke="#166d52" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M306 140v5M303.5 142.5h5" stroke="#166d52" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M250 198v6M247 201h6" stroke="#166d52" stroke-width="1.8" stroke-linecap="round"/>
+            <path d="M248 232v7M244.5 235.5h7" stroke="#166d52" stroke-width="2" stroke-linecap="round"/>
+            <path d="M200 228v5M197.5 230.5h5" stroke="#166d52" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M142 204v4M140 206h4" stroke="#166d52" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M228 206v4M226 208h4" stroke="#4f5d75" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M114 242v4M112 244h4" stroke="#166d52" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M78 244v5M75.5 246.5h5" stroke="#4f5d75" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M140 264v4M138 266h4" stroke="#166d52" stroke-width="1.4" stroke-linecap="round"/>
+
+            <!-- Back Tilted Ticket -->
+            <g transform="rotate(-11 180 140)">
+              <rect x="64" y="100" width="224" height="58" rx="8" fill="#e6eaf0" stroke="#7d8a99" stroke-width="1.4"/>
+              <path d="M64 108a8 8 0 0 1 8-8h154v14H64v-6z" fill="#6aa592"/>
+              <path d="M226 100h54a8 8 0 0 1 8 8v42a8 8 0 0 1-8 8h-54v-58z" fill="#8292a8"/>
+              <rect x="242" y="106" width="26" height="4" rx="2" fill="#e6eaf0"/>
+              <rect x="244" y="118" width="22" height="20" rx="2" fill="#e6eaf0"/>
+              <line x1="88" y1="107" x2="162" y2="107" stroke="#d8eee6" stroke-width="2" stroke-linecap="round"/>
+            </g>
+
+            <!-- Front Horizontal Ticket -->
+            <g>
+              <!-- Main ticket body with side notches -->
+              <path d="M68 122 h152 a7 7 0 0 0 14 0 h50 a8 8 0 0 1 8 8 v44 a8 8 0 0 1-8 8 h-50 a7 7 0 0 0-14 0 h-152 a8 8 0 0 1-8-8 v-44 a8 8 0 0 1 8-8 z"
+                    fill="#f8f9fb" stroke="#4c5a69" stroke-width="1.5"/>
+
+              <!-- Top green stripe on left section -->
+              <path d="M68 122 h152 a7 7 0 0 0 7 6.5 v7.5 H60 v-6 a8 8 0 0 1 8-8 z" fill="#1b6d52"/>
+              <line x1="78" y1="129" x2="156" y2="129" stroke="#d9f0e7" stroke-width="2" stroke-linecap="round"/>
+
+              <!-- Right navy stub -->
+              <path d="M227 128.5 a7 7 0 0 0 7-6.5 h50 a8 8 0 0 1 8 8 v44 a8 8 0 0 1-8 8 h-50 a7 7 0 0 0-7-6.5 z" fill="#1d3b5c"/>
+              <!-- Light header strip on stub -->
+              <path d="M234 122 h50 a8 8 0 0 1 8 8 v6 H227 v-7.5 a7 7 0 0 0 7-6.5 z" fill="#edf1f5"/>
+              <rect x="246" y="127" width="24" height="4" rx="2" fill="#1d3b5c"/>
+              <!-- Mint QR square -->
+              <rect x="248" y="145" width="20" height="20" rx="2" fill="#d7eee4"/>
+              <rect x="247" y="171" width="22" height="4" rx="2" fill="#9aa8b8"/>
+
+              <!-- Bus Icon on Left -->
+              <g transform="translate(76, 141)">
+                <rect x="2" y="0" width="30" height="31" rx="5" fill="#1d3b5c"/>
+                <!-- Windshield -->
+                <rect x="5" y="7" width="24" height="12" rx="2" fill="#cbe3f5"/>
+                <rect x="5" y="15" width="24" height="4" fill="#9bc5e6"/>
+                <!-- Destination sign -->
+                <rect x="10" y="2.5" width="14" height="2.5" rx="1" fill="#89a8c4"/>
+                <!-- Headlights -->
+                <circle cx="8" cy="24" r="2" fill="#ffffff"/>
+                <circle cx="26" cy="24" r="2" fill="#ffffff"/>
+                <!-- Grille -->
+                <rect x="13" y="23" width="8" height="2" rx="1" fill="#89a8c4"/>
+                <!-- Wheels -->
+                <rect x="5" y="30" width="6" height="4" rx="1.5" fill="#1d3b5c"/>
+                <rect x="23" y="30" width="6" height="4" rx="1.5" fill="#1d3b5c"/>
+                <!-- Side mirrors -->
+                <rect x="0" y="8" width="2" height="6" rx="1" fill="#1d3b5c"/>
+                <rect x="32" y="8" width="2" height="6" rx="1" fill="#1d3b5c"/>
+              </g>
+
+              <!-- Text placeholder bars on ticket -->
+              <rect x="128" y="148" width="82" height="5" rx="2.5" fill="#7c828a"/>
+              <rect x="152" y="156" width="58" height="4.5" rx="2.2" fill="#90969e"/>
+              <line x1="128" y1="171" x2="210" y2="171" stroke="#b9c0c8" stroke-width="1.4" stroke-linecap="round"/>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Purchased Passes Container -->
+        <div class="passes-list" id="passes-list"></div>
+      </div>
+
+      <button class="primary-green-btn" id="btn-open-buy">Buy Passes</button>
+    </section>
+
+    <!-- ==================== SCREEN 2 & 3: BUY PASSES SHEET ==================== -->
+    <div class="modal-backdrop" id="buy-modal">
+      <div class="buy-sheet">
+
+        <!-- VIEW A: Buy Passes Main (matches Screenshot 2) -->
+        <div class="buy-view" id="buy-main-view">
+          <div class="top-bar">
+            <button class="circle-btn" id="btn-close-buy" aria-label="Close">
+              <svg viewBox="0 0 24 24">
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+              </svg>
+            </button>
+            <button class="circle-btn" id="btn-cart-main" aria-label="Cart">
+              <svg viewBox="0 0 24 24">
+                <circle cx="9" cy="20" r="1.4" fill="currentColor" stroke="none"></circle>
+                <circle cx="17" cy="20" r="1.4" fill="currentColor" stroke="none"></circle>
+                <path d="M3 4h2.5l2.2 10.5a1.5 1.5 0 0 0 1.5 1.2h8.5a1.5 1.5 0 0 0 1.45-1.15L20.5 8H6.5"></path>
+              </svg>
+              <span class="cart-badge" id="cart-badge-main">0</span>
+            </button>
+          </div>
+
+          <h1 class="page-title">Buy Passes</h1>
+
+          <!-- Agency Card -->
+          <div class="agency-card">
+            <div class="agency-logo-wrap">
+              <svg viewBox="0 0 120 64" xmlns="http://www.w3.org/2000/svg" aria-label="Benton Area Transit Logo">
+                <circle cx="34" cy="22" r="14" fill="#2b7cb3" />
+                <circle cx="60" cy="22" r="14" fill="#3a9fd5" />
+                <circle cx="86" cy="22" r="14" fill="#2b7cb3" />
+                <circle cx="34" cy="22" r="14" fill="none" stroke="#ffffff" stroke-width="1.5" />
+                <circle cx="60" cy="22" r="14" fill="none" stroke="#ffffff" stroke-width="1.5" />
+                <circle cx="86" cy="22" r="14" fill="none" stroke="#ffffff" stroke-width="1.5" />
+                <text x="34" y="27" text-anchor="middle" fill="#ffffff" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="700">B</text>
+                <text x="60" y="27" text-anchor="middle" fill="#ffffff" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="700">A</text>
+                <text x="86" y="27" text-anchor="middle" fill="#ffffff" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="700">T</text>
+                <text x="60" y="47" text-anchor="middle" fill="#4a5568" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="7.5" font-weight="600" letter-spacing="0.6">BENTON AREA</text>
+                <text x="60" y="57" text-anchor="middle" fill="#4a5568" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="7.5" font-weight="600" letter-spacing="1.2">TRANSIT</text>
+              </svg>
+            </div>
+            <div class="agency-info">
+              <div class="agency-name">Benton Area Transit</div>
+              <div class="agency-location">Benton County, OR</div>
+            </div>
+            <svg class="chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 6 15 12 9 18"></polyline>
+            </svg>
+          </div>
+
+          <!-- Origin Selector -->
+          <button class="selector-pill" id="btn-pick-origin">
+            <span class="selector-label">Origin</span>
+            <span class="selector-value-wrap">
+              <span id="selected-origin-label">Newport</span>
+              <svg class="chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 6 15 12 9 18"></polyline>
+              </svg>
+            </span>
+          </button>
+
+          <!-- Destination Selector -->
+          <button class="selector-pill" id="btn-pick-destination">
+            <span class="selector-label">Destination</span>
+            <span class="selector-value-wrap">
+              <span id="selected-destination-label">Corvallis</span>
+              <svg class="chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 6 15 12 9 18"></polyline>
+              </svg>
+            </span>
+          </button>
+
+          <!-- Pass Offer Card -->
+          <div class="purchase-card">
+            <div class="purchase-title" id="buy-pass-title">Regular Newport Corvallis Single Ride</div>
+            <div class="purchase-desc" id="buy-pass-desc">
+              Valid for a single ride on the Coast to Valley Express From Newport to Corvallis. Ticket will display for 60 minutes.
+            </div>
+            <div class="purchase-price">$5.00</div>
+            <button class="primary-green-btn" id="btn-buy-now">Buy Now</button>
+            <button class="add-to-cart-btn" id="btn-add-to-cart">Add To Cart</button>
+          </div>
+        </div>
+
+        <!-- VIEW B: City Picker List (matches Screenshot 3) -->
+        <div class="buy-view hidden" id="buy-picker-view">
+          <div class="picker-top-bar">
+            <button class="circle-btn" id="btn-close-picker" aria-label="Back">
+              <svg viewBox="0 0 24 24">
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+              </svg>
+            </button>
+            <span class="picker-nav-title">Buy Passes</span>
+            <button class="circle-btn" id="btn-cart-picker" aria-label="Cart">
+              <svg viewBox="0 0 24 24">
+                <circle cx="9" cy="20" r="1.4" fill="currentColor" stroke="none"></circle>
+                <circle cx="17" cy="20" r="1.4" fill="currentColor" stroke="none"></circle>
+                <path d="M3 4h2.5l2.2 10.5a1.5 1.5 0 0 0 1.5 1.2h8.5a1.5 1.5 0 0 0 1.45-1.15L20.5 8H6.5"></path>
+              </svg>
+              <span class="cart-badge" id="cart-badge-picker">0</span>
+            </button>
+          </div>
+
+          <div class="picker-subheader">
+            <h2 id="picker-heading">Origin</h2>
+            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+
+          <div class="city-list-card" id="city-list-card"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================== SCREEN 4: ORIGINAL TICKET VIEW ==================== -->
+    <div class="ticket-overlay" id="ticket-overlay">
+      <div class="viewport">
+        <main class="ticket-sheet">
+          <!-- Top Header -->
+          <header class="header">
+            <div class="header-text">
+              <h1>Benton Area Transit</h1>
+              <p>Show operator your ticket</p>
+            </div>
+            <button class="close-btn" id="btn-close-ticket" aria-label="Close">
+              <svg viewBox="0 0 24 24" fill="none">
+                <line x1="5" y1="5" x2="19" y2="19"></line>
+                <line x1="19" y1="5" x2="5" y2="19"></line>
+              </svg>
+            </button>
+          </header>
+
+          <!-- Animated Pulsing Logo Badge -->
+          <section class="badge-container">
+            <div class="pulse-ring">
+              <div class="pulse-halo"></div>
+              <div class="pulse-blue"></div>
+              <div class="logo-circle">
+                <svg viewBox="0 0 120 64" xmlns="http://www.w3.org/2000/svg" aria-label="Benton Area Transit Logo">
+                  <!-- Three interlocking blue circles (B A T) -->
+                  <circle cx="34" cy="22" r="14" fill="#2b7cb3" />
+                  <circle cx="60" cy="22" r="14" fill="#3a9fd5" />
+                  <circle cx="86" cy="22" r="14" fill="#2b7cb3" />
+                  <!-- Subtle white rings for crisp separation -->
+                  <circle cx="34" cy="22" r="14" fill="none" stroke="#ffffff" stroke-width="1.5" />
+                  <circle cx="60" cy="22" r="14" fill="none" stroke="#ffffff" stroke-width="1.5" />
+                  <circle cx="86" cy="22" r="14" fill="none" stroke="#ffffff" stroke-width="1.5" />
+                  <!-- Letters -->
+                  <text x="34" y="27" text-anchor="middle" fill="#ffffff" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="700">B</text>
+                  <text x="60" y="27" text-anchor="middle" fill="#ffffff" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="700">A</text>
+                  <text x="86" y="27" text-anchor="middle" fill="#ffffff" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="700">T</text>
+                  <!-- Wordmark -->
+                  <text x="60" y="47" text-anchor="middle" fill="#4a5568" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="7.5" font-weight="600" letter-spacing="0.6">BENTON AREA</text>
+                  <text x="60" y="57" text-anchor="middle" fill="#4a5568" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="7.5" font-weight="600" letter-spacing="1.2">TRANSIT</text>
+                </svg>
+              </div>
+            </div>
+          </section>
+
+          <!-- Real-Time Ticking Clock -->
+          <div class="clock" id="live-clock">--:--:-- --</div>
+
+          <!-- Route Banner -->
+          <div class="route-pill" id="ticket-route-pill">NEW-&gt;COR</div>
+
+          <!-- Ticket Info Card -->
+          <section class="details-card">
+            <div class="ticket-title" id="ticket-title">Regular Newport Corvallis<br />Single Ride</div>
+            <div class="ticket-agency">Benton County, OR</div>
+            <div class="ticket-expiry" id="expiry-text">Expires --</div>
+          </section>
+        </main>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <script>
+    // City list from Screenshot 3 + 3-letter route codes
+    const CITIES = [
+      { name: "Albany", code: "ALB" },
+      { name: "Corvallis", code: "COR" },
+      { name: "Philomath", code: "PHI" },
+      { name: "Toledo", code: "TOL" },
+      { name: "Newport", code: "NEW" },
+      { name: "Eddyville", code: "EDD" },
+      { name: "Ellmaker State Park", code: "ELL" },
+      { name: "Blodgett", code: "BLO" },
+      { name: "North Albany", code: "NAL" }
+    ];
+
+    const STORAGE_KEY = "bat_purchased_passes_v1";
+
+    // App State
+    let selectedOrigin = "Newport";
+    let selectedDestination = "Corvallis";
+    let activePickerMode = "origin"; // "origin" | "destination"
+    let purchasedPasses = loadPasses();
+    let cartItems = [];
+    let clockTimer = null;
+
+    // Elements
+    const metaThemeColor = document.getElementById("meta-theme-color");
+    const emptyStateEl = document.getElementById("empty-state");
+    const passesListEl = document.getElementById("passes-list");
+
+    const buyModal = document.getElementById("buy-modal");
+    const buyMainView = document.getElementById("buy-main-view");
+    const buyPickerView = document.getElementById("buy-picker-view");
+
+    const selectedOriginLabel = document.getElementById("selected-origin-label");
+    const selectedDestinationLabel = document.getElementById("selected-destination-label");
+    const buyPassTitle = document.getElementById("buy-pass-title");
+    const buyPassDesc = document.getElementById("buy-pass-desc");
+
+    const pickerHeading = document.getElementById("picker-heading");
+    const cityListCard = document.getElementById("city-list-card");
+
+    const cartBadgeMain = document.getElementById("cart-badge-main");
+    const cartBadgePicker = document.getElementById("cart-badge-picker");
+
+    const ticketOverlay = document.getElementById("ticket-overlay");
+    const clockEl = document.getElementById("live-clock");
+    const routePillEl = document.getElementById("ticket-route-pill");
+    const ticketTitleEl = document.getElementById("ticket-title");
+    const expiryEl = document.getElementById("expiry-text");
+    const toastEl = document.getElementById("toast");
+
+    function loadPasses() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function savePasses() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(purchasedPasses));
+      } catch (e) {}
+    }
+
+    function getCityCode(cityName) {
+      const match = CITIES.find(c => c.name === cityName);
+      return match ? match.code : cityName.slice(0, 3).toUpperCase();
+    }
+
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toastEl.classList.remove("show"), 1800);
+    }
+
+    function updateCartBadges() {
+      const count = cartItems.length;
+      [cartBadgeMain, cartBadgePicker].forEach(badge => {
+        badge.textContent = count;
+        badge.classList.toggle("visible", count > 0);
+      });
+    }
+
+    function updateBuySummary() {
+      selectedOriginLabel.textContent = selectedOrigin;
+      selectedDestinationLabel.textContent = selectedDestination;
+      buyPassTitle.textContent = `Regular ${selectedOrigin} ${selectedDestination} Single Ride`;
+      buyPassDesc.textContent = `Valid for a single ride on the Coast to Valley Express From ${selectedOrigin} to ${selectedDestination}. Ticket will display for 60 minutes.`;
+    }
+
+    function renderHomePasses() {
+      passesListEl.innerHTML = "";
+      if (purchasedPasses.length === 0) {
+        emptyStateEl.style.display = "flex";
+        passesListEl.classList.remove("has-passes");
+        return;
+      }
+
+      emptyStateEl.style.display = "none";
+      passesListEl.classList.add("has-passes");
+
+      purchasedPasses.forEach((pass) => {
+        const card = document.createElement("div");
+        card.className = "pass-card";
+        card.innerHTML = `
+          <div class="pass-card-logo">
+            <svg viewBox="0 0 120 64" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="34" cy="22" r="14" fill="#2b7cb3" />
+              <circle cx="60" cy="22" r="14" fill="#3a9fd5" />
+              <circle cx="86" cy="22" r="14" fill="#2b7cb3" />
+              <circle cx="34" cy="22" r="14" fill="none" stroke="#ffffff" stroke-width="1.5" />
+              <circle cx="60" cy="22" r="14" fill="none" stroke="#ffffff" stroke-width="1.5" />
+              <circle cx="86" cy="22" r="14" fill="none" stroke="#ffffff" stroke-width="1.5" />
+              <text x="34" y="27" text-anchor="middle" fill="#ffffff" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="700">B</text>
+              <text x="60" y="27" text-anchor="middle" fill="#ffffff" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="700">A</text>
+              <text x="86" y="27" text-anchor="middle" fill="#ffffff" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="14" font-weight="700">T</text>
+              <text x="60" y="47" text-anchor="middle" fill="#4a5568" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="7.5" font-weight="600" letter-spacing="0.6">BENTON AREA</text>
+              <text x="60" y="57" text-anchor="middle" fill="#4a5568" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="7.5" font-weight="600" letter-spacing="1.2">TRANSIT</text>
+            </svg>
+          </div>
+          <div class="pass-card-info">
+            <div class="pass-card-title">Regular ${pass.origin} ${pass.destination} Single Ride</div>
+            <div class="pass-card-sub">Benton County, OR</div>
+            <span class="pass-card-pill">Tap to use</span>
+          </div>
+          <svg class="pass-card-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 6 15 12 9 18"></polyline>
+          </svg>
+        `;
+        card.addEventListener("click", () => openTicket(pass));
+        passesListEl.appendChild(card);
+      });
+    }
+
+    function openBuyModal() {
+      updateBuySummary();
+      buyMainView.classList.remove("hidden");
+      buyPickerView.classList.add("hidden");
+      buyModal.classList.add("open");
+      metaThemeColor.setAttribute("content", "#adadb1");
+    }
+
+    function closeBuyModal() {
+      buyModal.classList.remove("open");
+      metaThemeColor.setAttribute("content", "#f2f2f7");
+    }
+
+    function openCityPicker(mode) {
+      activePickerMode = mode;
+      const isOrigin = mode === "origin";
+      pickerHeading.textContent = isOrigin ? "Origin" : "Destination";
+      const prefix = isOrigin ? "From" : "To";
+
+      cityListCard.innerHTML = "";
+      CITIES.forEach(city => {
+        const row = document.createElement("button");
+        row.className = "city-row";
+        row.innerHTML = `
+          <div class="city-name">${city.name}</div>
+          <div class="city-sub">${prefix} ${city.name}</div>
+        `;
+        row.addEventListener("click", () => {
+          if (isOrigin) {
+            selectedOrigin = city.name;
+          } else {
+            selectedDestination = city.name;
+          }
+          updateBuySummary();
+          buyPickerView.classList.add("hidden");
+          buyMainView.classList.remove("hidden");
+        });
+        cityListCard.appendChild(row);
+      });
+
+      buyMainView.classList.add("hidden");
+      buyPickerView.classList.remove("hidden");
+      cityListCard.scrollTop = 0;
+    }
+
+    // Ticket Formatting (exact original logic)
+    function formatTimeWithSeconds(date) {
+      let hours = date.getHours();
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const seconds = String(date.getSeconds()).padStart(2, "0");
+      const ampm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12 || 12;
+      return `${hours}:${minutes}:${seconds} ${ampm}`;
+    }
+
+    function formatExpiry(date) {
+      const month = date.toLocaleString("en-US", { month: "short" });
+      const day = date.getDate();
+      const year = date.getFullYear();
+      let hours = date.getHours();
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const ampm = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12 || 12;
+      return `Expires ${month} ${day}, ${year} at ${hours}:${minutes} ${ampm}`;
+    }
+
+    function startClock() {
+      stopClock();
+      function tick() {
+        const now = new Date();
+        clockEl.textContent = formatTimeWithSeconds(now);
+        const delay = 1000 - now.getMilliseconds();
+        clockTimer = setTimeout(tick, delay);
+      }
+      tick();
+    }
+
+    function stopClock() {
+      if (clockTimer) {
+        clearTimeout(clockTimer);
+        clockTimer = null;
+      }
+    }
+
+    function openTicket(pass) {
+      const originCode = getCityCode(pass.origin);
+      const destCode = getCityCode(pass.destination);
+      routePillEl.textContent = `${originCode}->${destCode}`;
+      ticketTitleEl.innerHTML = `Regular ${pass.origin} ${pass.destination}<br />Single Ride`;
+
+      // Set expiration dynamically to 1 hour from when the ticket is opened
+      const expiryDate = new Date(Date.now() + 60 * 60 * 1000);
+      expiryEl.textContent = formatExpiry(expiryDate);
+
+      ticketOverlay.classList.add("open");
+      metaThemeColor.setAttribute("content", "#000000");
+      startClock();
+    }
+
+    function closeTicket() {
+      stopClock();
+      ticketOverlay.classList.remove("open");
+      metaThemeColor.setAttribute("content", "#f2f2f7");
+    }
+
+    // Event Listeners
+    document.getElementById("btn-open-buy").addEventListener("click", openBuyModal);
+    document.getElementById("btn-close-buy").addEventListener("click", closeBuyModal);
+
+    document.getElementById("btn-pick-origin").addEventListener("click", () => openCityPicker("origin"));
+    document.getElementById("btn-pick-destination").addEventListener("click", () => openCityPicker("destination"));
+
+    document.getElementById("btn-close-picker").addEventListener("click", () => {
+      buyPickerView.classList.add("hidden");
+      buyMainView.classList.remove("hidden");
+    });
+
+    document.getElementById("btn-buy-now").addEventListener("click", () => {
+      const newPass = {
+        id: Date.now(),
+        origin: selectedOrigin,
+        destination: selectedDestination
+      };
+      purchasedPasses.unshift(newPass);
+      savePasses();
+      renderHomePasses();
+      closeBuyModal();
+    });
+
+    document.getElementById("btn-add-to-cart").addEventListener("click", () => {
+      cartItems.push({ origin: selectedOrigin, destination: selectedDestination });
+      updateCartBadges();
+      showToast("Added to cart");
+    });
+
+    function checkoutCart() {
+      if (cartItems.length === 0) {
+        showToast("Your cart is empty");
+        return;
+      }
+      cartItems.forEach((item, idx) => {
+        purchasedPasses.unshift({
+          id: Date.now() + idx,
+          origin: item.origin,
+          destination: item.destination
+        });
+      });
+      cartItems = [];
+      updateCartBadges();
+      savePasses();
+      renderHomePasses();
+      closeBuyModal();
+      showToast("Passes added to My Passes");
+    }
+
+    document.getElementById("btn-cart-main").addEventListener("click", checkoutCart);
+    document.getElementById("btn-cart-picker").addEventListener("click", checkoutCart);
+
+    document.getElementById("btn-close-ticket").addEventListener("click", closeTicket);
+
+    // Refresh button: quick spin animation (long-press or double-tap could clear if needed, single tap refreshes)
+    document.getElementById("btn-refresh").addEventListener("click", () => {
+      renderHomePasses();
+      showToast("Passes updated");
+    });
+
+    // Profile button: lets user clear saved passes if they want to return to the empty state
+    document.getElementById("btn-profile").addEventListener("click", () => {
+      if (purchasedPasses.length === 0) {
+        showToast("Benton Area Transit");
+        return;
+      }
+      if (confirm("Clear all passes from My Passes?")) {
+        purchasedPasses = [];
+        savePasses();
+        renderHomePasses();
+      }
+    });
+
+    // Initial render
+    updateBuySummary();
+    renderHomePasses();
+  </script>
+</body>
+</html>
